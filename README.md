@@ -214,7 +214,7 @@ for element in a.iter() {
 - In other languages, programmer must explicitly handle the memory (allocation & deletion)
 - In rust, we have ownership concept.
 
- ### stack vs heap
+### stack vs heap
 
 - We use heap when the size of values at compile time is unknown.
 - pushing in stack is faster because OS never has to search for a place to store new data unlike heap where OS has to search for space big enough to hold data
@@ -341,3 +341,138 @@ let world = &s[6..11];
 #### Other slices 
 
 - We can use slices for arrays too `let slice = &array[1..3];`
+
+## Using Structs to structure related data
+
+```rust
+struct User {
+    username: String,
+    email: String,
+    sign_in_count: u64,
+    active: bool,
+} // struct definition
+```
+- data inside curly braces are called `fields`
+
+```rust
+let user1 = User {
+    //key:value
+    email: String::from("someone@example.com"),
+    username: String::from("someusername123"),
+    active: true,
+    sign_in_count: 1,   
+};// creaing an instance of the User struct
+```
+- To change the value, instance must be mutable too!
+
+### Fields init Shorthand
+
+- When the parameters are same as the key , we can omit that
+
+```rust
+fn build_user(email: String, username: String) -> User {
+    User {
+        email, // instead of email:email;
+        username,
+        active: true,
+        sign_in_count: 1,
+    }
+}
+```
+### Creating instances from Other Instance
+
+> `struct update syntax`
+
+```rust
+let user2 = User {
+        email: String::from("another@example.com"),
+        username: String::from("anotherusername567"),
+        ..user1 // rest of the values are same as that of user1
+    };
+```
+
+### Create different Types using `tuple structs`
+
+> `Tuple structs` : structs without named fields
+
+```rust
+struct Color(i32, i32, i32);
+let black = Color(0, 0, 0);
+```
+
+- You cannot pass many `tuple structs` with same fields as a parameter for a function : Behaves like tuples
+
+- again, keep in mind the `lifetime` parameter. (Explained later)
+
+### Printing structure for debugging
+
+```rust
+// here add this. This is called deriving Debug Trait
+#[derive(Debug)] 
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+fn main() {
+    let rect1 = Rectangle {
+        width: 30,
+        height: 50,
+    };
+    println!("rect1 is {:?}", rect1); //Notice the :? inside
+    // prints rect1 is Rectangle { width: 30, height: 50 }
+}
+```
+- `println!("rect1 is {:?#}", rect1);` even prints with line breaks (pretty print)
+
+### Methods
+
+#### Defining Methods
+
+```rust
+//after defining struct in above code
+impl Rectangle {
+    fn area(&self) -> u32 {
+        self.width * self.height
+}
+```
+- `&self` knows that it is `&Rectangle` because it is implemented inside `imp Rectangle` context.
+- `&self` because we want to *borrow* the ownership when we have to read.
+- we'd use `&mut self` to change the instance that we’ve called the method on as part of what the method does.
+
+#### Where's the -> operator?
+
+- Rust has *automatic referencing and dereferencing* while calling methods. so it automatically adds in `&`, `&mut`, or `*` so object matches the signature of the
+method.
+- This automatic referencing behavior works
+because methods have a clear receiver—the type of self
+
+#### Methods with more parameters
+
+- `rect1.can_hold(&rect2));`. here one instance has a method taking another instance as a parameter.
+- To use this we add this in the `imp Rectangle` block:
+
+```rust
+fn can_hold(&self, other: &Rectangle) -> bool {
+    ...
+}
+```
+> so `&self` makes rust clear which instance it is taking about. 
+
+#### Associated Functions
+
+> useful for creating *Constructors*
+
+```rust
+impl Rectangle {
+    fn square(size: u32) -> Rectangle {
+        Rectangle { width: size, height: size }
+    }
+}
+```
+
+- to call this we use `let sq = Rectangle::square(3)`.
+- The function is namespaced by the struct
+
+#### Multiple impl Blocks
+
+> We can use many such `impl { }` blocks for the same struct. (useful for generic types and traits)
