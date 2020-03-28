@@ -476,3 +476,145 @@ impl Rectangle {
 #### Multiple impl Blocks
 
 > We can use many such `impl { }` blocks for the same struct. (useful for generic types and traits)
+
+## Enums and pattern matching
+
+- *enums* : enumerations : types that enumerates its possible values.
+
+### Defining an enum
+
+ ```rust
+enum IpAddressKind {
+    V4,
+    V6,
+}
+ ```
+- `let four = IpAddrKind::V4;` : variants of the enum are namespaced under its identifier and we use `::` to resolve the namespace.
+- enums are useful when used along with structs since an enum is a type like this:
+
+```rust
+struct IpAddr {
+    kind: IpAddrKind,
+    address: String,
+}
+fn main() {
+    let home = IpAddr {
+        kind: IpAddrKind::V4,
+        address: String::from("127.0.0.1"),
+    };
+}
+
+```
+
+- But we can use it directly too like this:
+```rust
+enum IpAddressKind {
+    V4(u8,u8,u8,u8),
+    V6(String),
+}
+let home = IpAddr::V4(192,168,1,1);
+let loopback = IpAddr::V6(String::from("::1"));
+ ```
+ > checkout standard library for IpAddr
+
+- The real benefit of enum rather than using multiple structs is to define a function. Remember `impl` from structure using `&self`.
+
+### *Option* Enum and its advantages over Null values
+
+- There is no `Null` value in rust. Why? 
+>The problem with null values is that if you try to use a null value as a not-null value, you’ll get an error of some kind. Because this null or not-null property is pervasive, it’s extremely easy to make this kind of error.
+- But *null* concept is still useful so rust has an *Option* 😉. It has `Option<T>`enum for that.
+
+```rust
+enum Option<T> {
+    Some(T),
+    None,
+}
+```
+- Being so useful, it can be used without bringing it to scope. which means we can use `Some(T)` and `None` without `Option::` prefix.
+
+- `let some_number = Some(5);` we know what value is present
+- `let absent_number: Option<i32> = None;` we don't have a value; essentially a null value.
+
+> **Remember! `Option<T>` and `T` are not the same type**
+
+- The reason why `Option<T>` is that we are explicitly deciding that we are going to handle cases that might have null or some value.
+- So to use a value of type `T` from `Option<T>` when the code is handled , what control flow operator can be used ? *match* operator
+
+## `match` control flow operator
+
+- compares values against a series of pattern.
+- Patterns can be made up of literal values,
+variable names, wildcards, and many other thing
+- code associated with the pattern matched first will be executed.
+
+```rust
+enum UsState {
+    Alabama,
+    Alaska,
+    // --snip--
+}
+enum Coin {
+    Penny,
+    Nickel,
+    Dime,
+    Quarter(UsState),
+}
+
+value_in_cents(Coin::Quarter(UsState::Alaska)); //will match with
+
+fn value_in_cents(coin: Coin) -> u8 {
+    match coin {
+        Coin::Penny => 1,
+        Coin::Nickel => 5,
+        Coin::Dime => 10,
+        Coin::Quarter(state) => { // will match with this 
+            println!("State quarter from {:?}!", state);
+            25
+        }
+    }
+}
+```
+- as we can see, we can match the enums within the enums.
+
+#### Matching with Option<T>
+
+- to get the value of T from Option<T> we use it like this:
+
+```rust
+fn plus_one(x: Option<i32>) -> Option<i32> {
+    match x {
+        None => None,
+        Some(i) => Some(i + 1), // plus_one(five) below matched this
+    }
+}
+let five = Some(5);
+let six = plus_one(five);
+```
+- We pass *Some* value to match an `Option<T>` type and match it.
+
+> Matches are exhaustive : So there must be an *match `arm` for every possible cases. Rust will throw error otherwise. It's good. Handles everything. But there is a solution for that too. (`_` palceholder)
+
+#### The `_` placeholder
+
+- whenever we don't want/have to list all possible value , we can use `_` pattern and link it `=>` with `()`:a unit value  which is basically nothing.
+
+```rust
+let some_u8_value = Some(0u8);
+match some_u8_value {
+    Some(3) => println!("three"),
+    _ => (),
+}
+```
+
+### if let control flow
+
+- the above code is equivalent to:
+```rust
+if let Some(3) = some_u8_value {
+    println!("three");
+}
+```
+- We want to do something with the `Some(3)` match but do nothing with any other `Some<u8>` value or the None value
+- works the same way as `match` . However, we loose the exhaustive checking.
+- also works with the same logic that we used for matching enums within enums
