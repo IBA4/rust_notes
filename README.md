@@ -298,7 +298,7 @@ fn calculate_length(s: String) -> (String, usize) {
 
 > To make the reference variable mutable, we use `&mut` for `mut` variable
 
-- We cannot burrow mutable reference more than once at a time in a particular scope.
+- We cannot borrow mutable reference more than once at a time in a particular scope.
 - this is to prevent *data race* :
     - two or more pointers accessing same data
     - At least one is being used to write
